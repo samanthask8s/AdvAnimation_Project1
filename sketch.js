@@ -1,111 +1,105 @@
-//hi
-var boids = [];
-var maxBoids = 10;
+var s;
+var scl = 20;
+var food;
+var death = false;
+var highScore=0;
+var score=0;
+var fr=10;
 
 function setup() {
-createCanvas(1000, 700);
-background(21, 3, 77);
-loadBoids(maxBoids);
+
+  createCanvas(600, 600);
+  s = new Snake();
+  frameRate(10);
+  pickLocation();
+
+}
+
+function pickLocation() {
+  var cols = floor((width-scl)/scl);
+  var rows = floor((height-scl)/scl);
+  food = [floor(random(1,cols)), floor(random(1,rows))];
+  food[0]*=scl;
+  food[1]*=scl;
+  if(s.x===food[0]&&s.y===food[1])
+    pickLocation();
+  for(var i = 0; i < s.tail.length; i++) {
+    if(s.tail[i].x===food[0]&&s.tail[i].y===food[1]){
+      pickLocation();
+    }
+  }
+}
+
+function mousePressed() {
+  score=0;
+  death=false;
+  s.x=0;
+  s.y=0;
+  s.xspeed = 1;
+  s.yspeed = 0;
+  s.tail=[];
 }
 
 function draw() {
-  runBoids();
-}
+  frameRate(fr);
+  textSize(32);
+  fill(255, 0, 100);
+  if(!death){
+  background(51);
 
-function loadBoids(mb){
-//  Load my array with boids
-for(var i = 0; i < mb; i++){
-    var rad = random(15, 25);
- boids[i] = new Boid(random(0,width-rad), random(0,height-rad), rad);
+  text(score, 550, 30);
+  if (s.eat(food)) {
+    score++;
+    pickLocation();
+  }
+  death=s.death();
+  s.update();
+  s.show();
+  fill(255, 0, 100);
+  rect(food[0], food[1], scl, scl);
+}else{
+  fill(255);
+  background(200,50,50)
+  text("Game over\nScore:"+score,230,300);
+  if(score>highScore)
+    highScore=score;
 }
-}
+textSize(12);
+text("Highscore:"+highScore,525,575);
+text("Press enter to Restart",250,575);
 
-function runBoids(){
-//  Load my array with boids
-for(var i = 0; i < maxBoids; i++){
- boids[i].run();
-}
-}
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++  Boid code
-function  Boid(x, y, r)  {
-this.acc = createVector(random(-1,1), random(-1,1));
-this.vel = p5.Vector.random2D();
-this.pos = createVector(x, y);
-this.rad = r;
-this.index = 1;
-this.rcr = random(50,200);
-this.rcg = random(120,255);
-this.rcb = random(50,60);
-//document.write(this.index);
-//document.write(this.index==1);
 
-this.maxspeed = 4; // Maximum speed
-//this.maxforce = 0.5; // Maximum steering force
-}
-
-Boid.prototype.applyForce = function(force) {
-this.acc.add(force);
 }
 
 
-Boid.prototype.run = function() {
-this.update();
-this.checkEdges();
-this.render();
-}
 
 
-// Method to update location
-Boid.prototype.update = function() {
-// Update velocity
-this.vel.add(this.acc);
-// Limit speed
-this.vel.limit(this.maxspeed);
-this.pos.add(this.vel);
-//document.write(this.index);
-if (this.index==0)this.rcg++;
-//this.rcr+=5;
-if (this.index==1)this.rcb++;
-if (this.index==2)this.rcr++;
-// Reset accelertion to 0 each cycle
-this.acc.mult(random(.8,1.15));
-if(this.acc.mag()<.3||this.acc.mag()>1.5)
-this.acc = createVector(random(-1,1), random(-1,1));
-//this.acc.mult(0);
-}
 
-
-// Wraparound
-Boid.prototype.checkEdges = function() {
-  //if (this.pos.x < -this.rad) this.pos.x = width + this.rad;
-  if (this.pos.x < 0 ||this.pos.x > width -this.rad){
-    this.vel.x *=-1;
-		this.acc.x*=-1;
-		this.index=2
-    this.rcr = random(50,60);
-  this.rcg = random(200,50);
-  this.rcb = random(120,255);
+function keyPressed() {
+  if (keyCode === UP_ARROW) {
+    if(s.yspeed!=1)
+      s.dir(0, -1);
+  } else if (keyCode === DOWN_ARROW) {
+    if(s.yspeed!=-1)
+      s.dir(0, 1);
+  } else if (keyCode === RIGHT_ARROW) {
+    if(s.xspeed!=-1)
+      s.dir(1, 0);
+  } else if (keyCode === LEFT_ARROW) {
+    if(s.xspeed!=1)
+      s.dir(-1, 0);
+  } else if(keyCode===ENTER){
+    if(score>highScore)
+      highScore=score;
+    score=0;
+    death=false;
+    s.x=0;
+    s.y=0;
+    s.xspeed = 1;
+    s.yspeed = 0;
+    s.tail=[];
+    s.total=0;
 
   }
-  if (this.pos.y < 0 || this.pos.y > height - this.rad) {
-    this.vel.y *=-1;
-		this.acc.y*=-1;
-		this.index=0;
-    this.rcr = random(120,255);
-    this.rcg = random(50,60);
-    this.rcb = random(200,50);
-  }
-}
-
-// Draw boid as a circle
-Boid.prototype.render = function() {
-  fill(this.rcr, this.rcg, this.rcb,120);
-  noStroke();
-  //stroke(22);
-  //stroke(0,0,255,90);
-  rect(this.pos.x, this.pos.y, this.rad, this.rad,10);
-
-
 }
