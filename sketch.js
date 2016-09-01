@@ -38,6 +38,7 @@ function mousePressed() {
   s.xspeed = 1;
   s.yspeed = 0;
   s.tail=[];
+  fr=10;
 }
 
 function draw() {
@@ -89,6 +90,9 @@ function keyPressed() {
   } else if (keyCode === LEFT_ARROW) {
     if(s.xspeed!=1)
       s.dir(-1, 0);
+    }else if (keyCode === CONTROL){
+      s.total++;
+
   } else if(keyCode===ENTER){
     if(score>highScore)
       highScore=score;
@@ -100,6 +104,7 @@ function keyPressed() {
     s.yspeed = 0;
     s.tail=[];
     s.total=0;
+    fr=10;
 
   }
 }
